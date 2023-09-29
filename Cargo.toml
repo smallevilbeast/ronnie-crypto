@@ -2,8 +2,16 @@
 name = "ronnie-crypto"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
+documentation = "https://docs.rs/ronnie-crypto"
+repository = "https://github.com/smallevilbeast/ronnie-crypto"
+homepage = "https://github.com/smallevilbeast/ronnie-crypto"
+description = """
+Wrapped based on OpenSSL, including interfaces for AES, HASH, RSA, HMAC, HKDF, ECDH, etc.
+"""
+readme = "README.md"
+keywords = ["openssl", "crypto", "aes", "hash", "rsa", "hmac", "hkdf", "ecdh"]
+categories = ["development-tools"]
 
 [dependencies]
 openssl = "0.10.57"

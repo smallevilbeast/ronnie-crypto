@@ -6,3 +6,4 @@ pub mod rand;
 pub mod hash;
 pub mod ecdsa;
 pub mod ecdh;
+pub mod rsa;

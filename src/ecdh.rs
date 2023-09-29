@@ -1,10 +1,10 @@
-use openssl::ec::{EcGroup, EcKey, EcPoint};
-use openssl::nid::Nid;
-use openssl::bn::{BigNum, BigNumContext};
-use openssl::derive::Deriver;
-use openssl::pkey::PKey;
 use crate::error::CryptoError;
 use crate::hash;
+use openssl::bn::{BigNum, BigNumContext};
+use openssl::derive::Deriver;
+use openssl::ec::{EcGroup, EcKey, EcPoint};
+use openssl::nid::Nid;
+use openssl::pkey::PKey;
 
 pub enum KDFType {
     None,
@@ -28,7 +28,9 @@ pub fn gen_ecdh_key_pair(nid: Nid, use_compress: bool) -> Result<(Vec<u8>, Vec<u
     } else {
         openssl::ec::PointConversionForm::UNCOMPRESSED
     };
-    let pub_key = ec_key.public_key().to_bytes(&group, conversion_from, &mut ctx)?;
+    let pub_key = ec_key
+        .public_key()
+        .to_bytes(&group, conversion_from, &mut ctx)?;
 
     //  Extract the private key from the EC_KEY.
     let mut pri_key = ec_key.private_key_to_der()?;
@@ -39,9 +41,14 @@ pub fn gen_ecdh_key_pair(nid: Nid, use_compress: bool) -> Result<(Vec<u8>, Vec<u
     Ok((pub_key, pri_key))
 }
 
-
 /// Computes the ECDH secret.
-pub fn compute_ecdh_secret(nid: Nid, pub_key: &[u8], pri_key: &[u8], pri_key_is_der: bool, kdf_type: KDFType) -> Result<Vec<u8>, CryptoError> {
+pub fn compute_ecdh_secret(
+    nid: Nid,
+    pub_key: &[u8],
+    pri_key: &[u8],
+    pri_key_is_der: bool,
+    kdf_type: KDFType,
+) -> Result<Vec<u8>, CryptoError> {
     // Create an EC_GROUP object.
     let group = EcGroup::from_curve_name(nid)?;
 
@@ -53,24 +60,23 @@ pub fn compute_ecdh_secret(nid: Nid, pub_key: &[u8], pri_key: &[u8], pri_key_is_
     // Load the private key.
     let ec_pri_key: PKey<_>;
     if pri_key_is_der {
-            ec_pri_key = EcKey::private_key_from_der(&pri_key)?.try_into()?;
+        ec_pri_key = EcKey::private_key_from_der(&pri_key)?.try_into()?;
     } else {
-            let pri_big_num = BigNum::from_slice(pri_key)?;
-            ec_pri_key= EcKey::from_private_components(&group, &pri_big_num, &public_key)?.try_into()?;
+        let pri_big_num = BigNum::from_slice(pri_key)?;
+        ec_pri_key =
+            EcKey::from_private_components(&group, &pri_big_num, &public_key)?.try_into()?;
     }
 
     let mut deriver: Deriver<'_> = Deriver::new(&ec_pri_key)?;
     deriver.set_peer(&ec_pub_key)?;
     let secret = deriver.derive_to_vec()?;
 
-    let result = match kdf_type {
+    Ok(match kdf_type {
         KDFType::None => secret,
         KDFType::MD5 => hash::md5(&secret)?,
         KDFType::SHA1 => hash::sha1(&secret)?,
         KDFType::SHA256 => hash::sha256(&secret)?,
-    };
-
-    Ok(result)
+    })
 }
 
 #[cfg(test)]
@@ -96,28 +102,47 @@ mod tests {
                                                      44571c5937c6a7701fe2fd10909798a5838b2b83bcca825e852ae0341\
                                                      b467321b2bd36c8c631a0b2e4b438e60687360bb4c5c44d075da6773d\
                                                      c8c42ee880fa454").unwrap();
-        let pub_key = hex::decode("04a9b854ed27a0572c79b1ba931b43f568322c266585636444bb5d1cba5284\
-        0fe43bd2d1d7f73e9beaf2f7dc9697ae9cc439025fb635d735ba78c007a29e0d9618").unwrap();
+        let pub_key = hex::decode(
+            "04a9b854ed27a0572c79b1ba931b43f568322c266585636444bb5d1cba5284\
+        0fe43bd2d1d7f73e9beaf2f7dc9697ae9cc439025fb635d735ba78c007a29e0d9618",
+        )
+        .unwrap();
         let secret = compute_ecdh_secret(
-                Nid::X9_62_PRIME256V1, 
-                &pub_key, 
-                &private_key, 
-                true,
-                KDFType::SHA256).unwrap();
-        
-        assert_eq!(secret, hex::decode("3e2f31f9ddcf8bf6bcc7b97b8b22671932397fc9f71bf2003ebdbb05b41e4a64").unwrap());
+            Nid::X9_62_PRIME256V1,
+            &pub_key,
+            &private_key,
+            true,
+            KDFType::SHA256,
+        )
+        .unwrap();
+
+        assert_eq!(
+            secret,
+            hex::decode("3e2f31f9ddcf8bf6bcc7b97b8b22671932397fc9f71bf2003ebdbb05b41e4a64")
+                .unwrap()
+        );
     }
 
     #[test]
     fn test_compute_compress_key_should_ok() {
-        let private_key = hex::decode("ca12a9b71f1e1af57f921e48fb38065321f5d6411c51a5341ce6a28294ca90bb").unwrap();
-        let pub_key = hex::decode("03de19a842dfb903f6c892e90b9c4e5a8e7abc43e2b8dd187a24af2a1fbf2fe1a9").unwrap();
+        let private_key =
+            hex::decode("ca12a9b71f1e1af57f921e48fb38065321f5d6411c51a5341ce6a28294ca90bb")
+                .unwrap();
+        let pub_key =
+            hex::decode("03de19a842dfb903f6c892e90b9c4e5a8e7abc43e2b8dd187a24af2a1fbf2fe1a9")
+                .unwrap();
         let secret = compute_ecdh_secret(
-                Nid::X9_62_PRIME256V1, 
-                &pub_key, 
-                &private_key,
-                false,
-            KDFType::None).unwrap();
-        assert_eq!(secret, hex::decode("6c6d3f76583bc0202877c6a0e4eae4a2e6448b5a10eeca06d06d9d7449f9699f").unwrap());
+            Nid::X9_62_PRIME256V1,
+            &pub_key,
+            &private_key,
+            false,
+            KDFType::None,
+        )
+        .unwrap();
+        assert_eq!(
+            secret,
+            hex::decode("6c6d3f76583bc0202877c6a0e4eae4a2e6448b5a10eeca06d06d9d7449f9699f")
+                .unwrap()
+        );
     }
 }

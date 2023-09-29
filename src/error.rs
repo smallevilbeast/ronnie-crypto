@@ -10,4 +10,7 @@ pub enum CryptoError {
 
     #[error("Invalid hkdf info length: {0}")]
     InvalidHkdfInfoLength(usize),
+
+    #[error("Rsa block error")]
+    RsaBlockError,
 }

@@ -1,5 +1,5 @@
-use openssl::symm::{Cipher, Crypter, Mode};
 use crate::error::CryptoError;
+use openssl::symm::{Cipher, Crypter, Mode};
 
 /// Encrypts data using AES in CBC mode.
 pub fn aes_cbc_encrypt(key: &[u8], iv: &[u8], data: &[u8]) -> Result<Vec<u8>, CryptoError> {
@@ -10,7 +10,7 @@ pub fn aes_cbc_encrypt(key: &[u8], iv: &[u8], data: &[u8]) -> Result<Vec<u8>, Cr
         _ => return Err(CryptoError::InvalidKeyLength),
     };
     let mut crypter = Crypter::new(cipher, Mode::Encrypt, key, Some(iv))?;
-    crypter.pad(true);  // Enable PKCS7 padding
+    crypter.pad(true); // Enable PKCS7 padding
 
     let mut ciphertext = vec![0; data.len() + cipher.block_size()];
     let mut count = crypter.update(data, &mut ciphertext)?;
@@ -28,7 +28,7 @@ pub fn aes_cbc_decrypt(key: &[u8], iv: &[u8], ciphertext: &[u8]) -> Result<Vec<u
         _ => return Err(CryptoError::InvalidKeyLength),
     };
     let mut crypter = Crypter::new(cipher, Mode::Decrypt, key, Some(iv))?;
-    crypter.pad(true);  // Enable PKCS7 padding
+    crypter.pad(true); // Enable PKCS7 padding
 
     let mut plaintext = vec![0; ciphertext.len() + cipher.block_size()];
     let mut count = crypter.update(ciphertext, &mut plaintext)?;
@@ -47,7 +47,7 @@ pub fn aes_ecb_encrypt(key: &[u8], data: &[u8]) -> Result<Vec<u8>, CryptoError> 
     };
 
     let mut crypter = Crypter::new(cipher, Mode::Encrypt, key, None)?;
-    crypter.pad(true);  // Enable PKCS7 padding
+    crypter.pad(true); // Enable PKCS7 padding
 
     let mut ciphertext = vec![0; data.len() + cipher.block_size()];
     let mut count = crypter.update(data, &mut ciphertext)?;
@@ -67,7 +67,7 @@ pub fn aes_ecb_decrypt(key: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, CryptoE
     };
 
     let mut crypter = Crypter::new(cipher, Mode::Decrypt, key, None)?;
-    crypter.pad(true);  // Enable PKCS7 padding
+    crypter.pad(true); // Enable PKCS7 padding
 
     let mut plaintext = vec![0; ciphertext.len() + cipher.block_size()];
     let mut count = crypter.update(ciphertext, &mut plaintext)?;
@@ -78,7 +78,12 @@ pub fn aes_ecb_decrypt(key: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, CryptoE
 }
 
 /// Encrypts data using AES in GCM mode.
-pub fn aes_gcm_encrypt(key: &[u8], iv: &[u8], aad: &[u8], plaintext: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
+pub fn aes_gcm_encrypt(
+    key: &[u8],
+    iv: &[u8],
+    aad: &[u8],
+    plaintext: &[u8],
+) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
     let cipher = match key.len() {
         16 => Cipher::aes_128_gcm(),
         24 => Cipher::aes_192_gcm(),
@@ -98,12 +103,18 @@ pub fn aes_gcm_encrypt(key: &[u8], iv: &[u8], aad: &[u8], plaintext: &[u8]) -> R
     ciphertext.truncate(count + rest);
 
     let mut tag = vec![0; 16];
-    crypter.get_tag(&mut tag)?; 
+    crypter.get_tag(&mut tag)?;
     Ok((ciphertext, tag))
 }
 
 /// Decrypts data using AES in GCM mode.
-pub fn aes_gcm_decrypt(key: &[u8], iv: &[u8], aad: &[u8], ciphertext: &[u8], tag: &[u8]) -> Result<Vec<u8>, CryptoError> {
+pub fn aes_gcm_decrypt(
+    key: &[u8],
+    iv: &[u8],
+    aad: &[u8],
+    ciphertext: &[u8],
+    tag: &[u8],
+) -> Result<Vec<u8>, CryptoError> {
     let cipher = match key.len() {
         16 => Cipher::aes_128_gcm(),
         24 => Cipher::aes_192_gcm(),
@@ -167,5 +178,4 @@ mod tests {
         let ciphertext = aes_cbc_encrypt(key, iv, data);
         assert!(ciphertext.is_err());
     }
-
 }
