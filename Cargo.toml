@@ -10,7 +10,7 @@ description = """
 Wrapped based on OpenSSL, including interfaces for AES, HASH, RSA, HMAC, HKDF, ECDH, etc.
 """
 readme = "README.md"
-keywords = ["openssl", "crypto", "aes", "hash", "rsa", "hmac", "hkdf", "ecdh"]
+keywords = ["openssl", "crypto"]
 categories = ["development-tools"]
 
 [dependencies]
