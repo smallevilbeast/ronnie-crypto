@@ -26,3 +26,19 @@ pub fn aes_cbc_decrypt(key: &[u8], iv: &[u8], ciphertext: &[u8]) -> Result<Vec<u
     plaintext.truncate(count);
     Ok(plaintext)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const KEY: &[u8] = b"abcdefghijklmnop";
+    const IV: &[u8] = b"abcdefghijklmnop";
+    const DATA: &[u8] = b"Hello, world! This is a test of the openssl encryptor.";
+
+    #[test]
+    fn test_aes_cbc_crypto_should_ok() {
+        let ciphertext = aes_cbc_encrypt(KEY, IV, DATA).unwrap();
+        let plaintext = aes_cbc_decrypt(KEY, IV, &ciphertext).unwrap();
+        assert_eq!(DATA, &plaintext[..]);
+    }
+}
