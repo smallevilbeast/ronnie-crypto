@@ -5,3 +5,4 @@ pub mod hkdf;
 pub mod rand;
 pub mod hash;
 pub mod ecdsa;
+pub mod ecdh;
