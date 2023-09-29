@@ -7,3 +7,13 @@ pub mod hash;
 pub mod ecdsa;
 pub mod ecdh;
 pub mod rsa;
+
+pub use error::CryptoError;
+pub use aes::*;
+pub use hmac::*;
+pub use hkdf::*;
+pub use rand::*;
+pub use hash::*;
+pub use ecdsa::*;
+pub use ecdh::*;
+pub use rsa::*;
