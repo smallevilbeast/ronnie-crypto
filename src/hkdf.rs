@@ -2,6 +2,7 @@ use crate::{hmac::hmac_sha256, error::CryptoError};
 
 const CRYPTO_HMAC_SHA256: usize = 32;
 
+/// Generates a HKDF.
 pub fn hkdf_expand(key: &[u8], info: &[u8], length: usize) -> Result<Vec<u8>, CryptoError> {
     let hash_len = CRYPTO_HMAC_SHA256;
     if length > 255 * hash_len {
