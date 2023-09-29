@@ -103,8 +103,7 @@ pub fn aes_gcm_encrypt(key: &[u8], iv: &[u8], aad: &[u8], plaintext: &[u8]) -> R
 }
 
 /// Decrypts data using AES in GCM mode.
-#[allow(dead_code)]
-fn aes_gcm_decrypt(key: &[u8], iv: &[u8], aad: &[u8], ciphertext: &[u8], tag: &[u8]) -> Result<Vec<u8>, CryptoError> {
+pub fn aes_gcm_decrypt(key: &[u8], iv: &[u8], aad: &[u8], ciphertext: &[u8], tag: &[u8]) -> Result<Vec<u8>, CryptoError> {
     let cipher = match key.len() {
         16 => Cipher::aes_128_gcm(),
         24 => Cipher::aes_192_gcm(),
