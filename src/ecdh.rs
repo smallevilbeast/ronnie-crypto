@@ -13,7 +13,7 @@ pub enum KDFType {
     SHA256,
 }
 
-
+/// Generates an ECDH key pair.
 pub fn gen_ecdh_key_pair(nid: Nid, use_compress: bool) -> Result<(Vec<u8>, Vec<u8>), CryptoError> {
     // Create an EC_GROUP object.
     let group = EcGroup::from_curve_name(nid)?;
